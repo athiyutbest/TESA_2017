@@ -3,13 +3,13 @@ import queue
 import signal
 import time
 from pprint import pprint
-
 import _thread
 import camera_rpi
 import image_rpi
 import mqtt_rpi
 import rest_rpi
 import serial_rpi
+
 
 IMAGE_PATH = os.path.join(os.getcwd(), 'image')
 CAMERA = camera_rpi.Camera_RPi()
@@ -23,14 +23,14 @@ def handler(signum, frame):
     if command == 1:
         send_data()
     else:
-        print("Command not found")
+        print("Error : Command not found")
 
 
 def remove_all_image():
     list_file = os.listdir(IMAGE_PATH)
     for file in list_file:
         os.remove(os.path.join(IMAGE_PATH, file))
-    print("Remove image...")
+    print("Succ : remove_all_image")
 
 
 def get_image():
@@ -47,21 +47,21 @@ def send_data():
         remove_all_image()
         moisture = 99
         # moisture = serial_rpi.request_sensor_data()
-        images = CAMERA.custom_capture(1, 0)
+        CAMERA.custom_capture(1, 0)
         image_rpi.resize_image(get_image()[0])
         data = {}
-        tmp_list_image = get_image()
-        if '_preview' in tmp_list_image[1]:
+        list_image = get_image()
+        if '_preview' in list_image[1]:
             data = rest_rpi.create_data(
-                moisture, tmp_list_image[0], tmp_list_image[1])
+                moisture, list_image[0], list_image[1])
         else:
             data = rest_rpi.create_data(
-                moisture, tmp_list_image[1], tmp_list_image[0])
+                moisture, list_image[1], list_image[0])
         result = rest_rpi.post_data(data)
         if result.status_code == 200:
-            print('Data is sent')
+            print('Succ : send_data')
         else:
-            print('Error while sending data : {}'.format(result.status_code))
+            print('Error : send_data({})'.format(result.status_code))
         Lock.release()
 
 
