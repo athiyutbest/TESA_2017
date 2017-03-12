@@ -7,6 +7,8 @@ import urllib.parse as urlparse
 import paho.mqtt.client as paho
 
 GET_STR = '1'
+SUBSCRIBE='line/call'
+PUBLISH='line/back'
 
 
 class Mqtt(paho.Client):
@@ -14,6 +16,7 @@ class Mqtt(paho.Client):
         super(Mqtt, self).__init__()
 
         def _on_message(mosq, obj, msg):
+            print('Received Data : {}'.format(msg.payload))
             msg_str = msg.payload.decode('utf-8')
             if msg_str.lower().strip() == GET_STR:
                 q.put(msg_str)
@@ -39,10 +42,10 @@ class Mqtt(paho.Client):
         url = urlparse.urlparse(url_str)
         self.username_pw_set(url.username, url.password)
         self.connect(url.hostname, url.port)
-        self.subscribe("line/call", 0)
+        self.subscribe(SUBSCRIBE, 0)
 
     def send_to_line(self, msg):
-        self.publish("line/back", msg)
+        self.publish(PUBLISH, msg)
 
     def mqtt_loop(self):
         while True:
